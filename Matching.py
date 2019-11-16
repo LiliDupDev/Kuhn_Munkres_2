@@ -19,8 +19,6 @@ class Matching:
         self.n = matrix_size
         self.create_matrix(G)
 
-
-
     def create_matrix(self,g):
         x_vector=[]
         for i in range(self.n):
@@ -78,19 +76,23 @@ class Matching:
             x_vector.clear()
         self.EG = tempEG
 
-    def set_matching(self):
+    def set_matching(self, initial):
         self.M = []
         x_labels=self.labels[:self.n]
-        x_labels=sorted(x_labels, key=lambda label: label.label, reverse=True)
+        if initial:
+            x_labels=sorted(x_labels, key=lambda label: label.label, reverse=True)
+
         for label in x_labels:
-            eg_edges=self.EG[label.vertex].copy()
-            eg_edges=sorted(eg_edges,key=lambda node: node.weight, reverse=True)
+            eg_edges = self.EG[label.vertex].copy()
+            eg_edges = sorted(eg_edges, key=lambda node: node.weight, reverse=True)
             for edge in eg_edges:
                 if edge.weight >= label.label and \
-                        not self.is_m_saturated('y',edge.y_position) and \
-                        not self.is_m_saturated('x',edge.x_position):
+                        not self.is_m_saturated('y', edge.y_position) and \
+                        not self.is_m_saturated('x', edge.x_position):
                     self.M.append(edge)
                     break
+
+
 
     # Check if a vertex X/Y is M-Saturated
     def is_m_saturated(self, type, vertex):
@@ -192,7 +194,7 @@ class Matching:
     def algorithm(self):
         self.set_initial_labeling()
         self.set_equality_graph()
-        self.set_matching()
+        self.set_matching(True)
         flag_new_match = True
         u = None
         path = []
@@ -203,7 +205,7 @@ class Matching:
                 u = self.get_m_unsaturated_vertex()
                 self.S = [u]
                 self.T = []
-                # self.get_neighborhood(self.S)
+                self.get_neighborhood(self.S)
                 flag_new_match = False
 
 
@@ -213,7 +215,7 @@ class Matching:
                 if self.alpha != 1000000:
                     self.set_labeling()
                     self.set_equality_graph()
-                    self.set_matching()
+                    self.set_matching(False)
                     self.get_neighborhood(self.S)
 
             # Step 3
@@ -229,7 +231,8 @@ class Matching:
                 flag_new_match = True
             else:
                 flag_new_match = True
-                self.set_matching()
+                self.set_matching(True)
+
 
     # Execute a symmetric difference with M and path and return the new matching
     def new_matching(self, path):
@@ -304,37 +307,3 @@ class Matching:
             m=[edge.x_position, edge.y_position]
             matching.append(m)
         return matching
-
-# matrix = [
-#     [0,1,2,3],
-#     [3,4,5,6],
-#     [7,8,9,10],
-#     [3,2,1,5]
-# ]
-#
-matrix = [
-    [10,9, 8, 8, 0],
-    [2 ,7, 9, 5, 0],
-    [0 ,6, 7, 4, 0],
-    [4 ,0, 5, 6, 0],
-    [6 ,0, 10, 0, 0]
- ]
-# matrix = [
-#     [10, 9, 8, 8, 4],
-#     [2 ,7, 9, 5, 0],
-#     [0 ,6, 7, 4, 2],
-#     [4 ,0, 5, 6, 9],
-#     [6 ,0, 10, 0, 8]
-#  ]
-# matrix=[
-#         [1, 2, 8, 0, 3],
-#         [4, 9, 7, 5, 0],
-#         [2, 0, 10, 0, 8],
-#         [6, 3, 0, 9, 4],
-#         [0, 8, 0, 7, 9]
-# ]
-
-test = Matching(matrix,len(matrix))
-test.algorithm()
-print("Cost: ", test.get_cost())
-print("Matching: ", test.get_match())
