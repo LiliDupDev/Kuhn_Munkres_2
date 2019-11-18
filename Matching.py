@@ -84,13 +84,34 @@ class Matching:
 
         for label in x_labels:
             eg_edges = self.EG[label.vertex].copy()
-            eg_edges = sorted(eg_edges, key=lambda node: node.weight, reverse=True)
+            eg_edges = sorted(eg_edges, key=lambda node: node.weight)
             for edge in eg_edges:
                 if edge.weight >= label.label and \
                         not self.is_m_saturated('y', edge.y_position) and \
                         not self.is_m_saturated('x', edge.x_position):
                     self.M.append(edge)
                     break
+
+    def set_matching_y(self):
+        self.M = []
+        y_labels = self.labels[self.n:self.n*2]
+        y_labels = sorted(y_labels, key=lambda label: label.label,reverse=True)
+        for label in y_labels:
+            temp_edge_array=[]
+            for x_vertex in range(self.n):
+                temp_node=Node(self.EG[x_vertex][label.vertex].x_position,self.EG[x_vertex][label.vertex].y_position, self.EG[x_vertex][label.vertex].weight)
+                temp_edge_array.append(temp_node)
+
+            temp_edge_array = sorted(temp_edge_array, key=lambda node: node.weight)
+            for edge in temp_edge_array:
+                if (edge.weight >= label.label and \
+                    edge.weight >= self.labels[edge.x_position].label) and \
+                    not self.is_m_saturated('y', edge.y_position) and \
+                    not self.is_m_saturated('x', edge.x_position):
+                        self.M.append(edge)
+
+
+
 
 
 
@@ -194,7 +215,7 @@ class Matching:
     def algorithm(self):
         self.set_initial_labeling()
         self.set_equality_graph()
-        self.set_matching(True)
+        self.set_matching_y()
         flag_new_match = True
         u = None
         path = []
@@ -215,7 +236,7 @@ class Matching:
                 if self.alpha != 1000000:
                     self.set_labeling()
                     self.set_equality_graph()
-                    self.set_matching(False)
+                    self.set_matching_y()
                     self.get_neighborhood(self.S)
 
             # Step 3
@@ -231,7 +252,7 @@ class Matching:
                 flag_new_match = True
             else:
                 flag_new_match = True
-                self.set_matching(True)
+                self.set_matching_y()
 
 
     # Execute a symmetric difference with M and path and return the new matching
